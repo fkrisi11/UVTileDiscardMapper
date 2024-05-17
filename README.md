@@ -1,4 +1,4 @@
-# UVTileDiscardMapper
+# UV Tile Discard Mapper
 A program that helps you create maps that help you remember which UV tile has which mesh on it.<br>
 This is intended to be used with the [Poiyomi Toon Unity shader](https://github.com/poiyomi/PoiyomiToonShader), which is why the layout shows 4x4 UV tiles, which is exactly what the shader supports.
 
@@ -14,5 +14,7 @@ This is intended to be used with the [Poiyomi Toon Unity shader](https://github.
 - Right click a picture box to clear its contents<br>
 - When everything is done, save the image with the button at the bottom of the app, and select where to save the image<br>
 - To start over, use the Clear button, to clear everything from the form<br><br>
+
+Latest release available [here](https://github.com/fkrisi11/UVTileDiscardMapper/releases/latest)
 
 App icon by: [Icons8](https://icons8.com/)
