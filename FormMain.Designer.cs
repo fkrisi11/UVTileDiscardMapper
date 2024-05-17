@@ -95,12 +95,12 @@
             this.textBox30 = new System.Windows.Forms.TextBox();
             this.label30 = new System.Windows.Forms.Label();
             this.panelBottom = new System.Windows.Forms.Panel();
+            this.buttonClear = new System.Windows.Forms.Button();
             this.buttonSaveTileMap = new System.Windows.Forms.Button();
             this.labelTileNamesGuide = new System.Windows.Forms.Label();
             this.panelTop = new System.Windows.Forms.Panel();
             this.labelMeshNameGuide = new System.Windows.Forms.Label();
             this.textBoxMeshName = new System.Windows.Forms.TextBox();
-            this.buttonClear = new System.Windows.Forms.Button();
             this.tableLayoutPanel.SuspendLayout();
             this.panel03.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox03)).BeginInit();
@@ -903,6 +903,23 @@
             this.panelBottom.Size = new System.Drawing.Size(800, 581);
             this.panelBottom.TabIndex = 1;
             // 
+            // buttonClear
+            // 
+            this.buttonClear.FlatAppearance.BorderColor = System.Drawing.Color.Red;
+            this.buttonClear.FlatAppearance.BorderSize = 2;
+            this.buttonClear.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F);
+            this.buttonClear.ForeColor = System.Drawing.Color.White;
+            this.buttonClear.Location = new System.Drawing.Point(12, 542);
+            this.buttonClear.Name = "buttonClear";
+            this.buttonClear.Size = new System.Drawing.Size(98, 39);
+            this.buttonClear.TabIndex = 18;
+            this.buttonClear.Text = "Clear";
+            this.buttonClear.UseVisualStyleBackColor = true;
+            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
+            this.buttonClear.Enter += new System.EventHandler(this.buttonClear_Enter);
+            this.buttonClear.Leave += new System.EventHandler(this.buttonClear_Leave);
+            // 
             // buttonSaveTileMap
             // 
             this.buttonSaveTileMap.FlatAppearance.BorderColor = System.Drawing.Color.DodgerBlue;
@@ -961,23 +978,6 @@
             this.textBoxMeshName.Size = new System.Drawing.Size(776, 29);
             this.textBoxMeshName.TabIndex = 0;
             this.textBoxMeshName.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            // 
-            // buttonClear
-            // 
-            this.buttonClear.FlatAppearance.BorderColor = System.Drawing.Color.Red;
-            this.buttonClear.FlatAppearance.BorderSize = 2;
-            this.buttonClear.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F);
-            this.buttonClear.ForeColor = System.Drawing.Color.White;
-            this.buttonClear.Location = new System.Drawing.Point(12, 542);
-            this.buttonClear.Name = "buttonClear";
-            this.buttonClear.Size = new System.Drawing.Size(98, 39);
-            this.buttonClear.TabIndex = 18;
-            this.buttonClear.Text = "Clear";
-            this.buttonClear.UseVisualStyleBackColor = true;
-            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
-            this.buttonClear.Enter += new System.EventHandler(this.buttonClear_Enter);
-            this.buttonClear.Leave += new System.EventHandler(this.buttonClear_Leave);
             // 
             // FormMain
             // 

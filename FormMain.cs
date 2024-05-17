@@ -110,7 +110,7 @@ namespace UVTileDiscardMapper
 			tileControls.Reverse();
 		}
 
-		private void FormMain_KeyUp(object sender, KeyEventArgs e)
+        private void FormMain_KeyUp(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.V && e.Modifiers == Keys.Control)
 				PasteImage(ActiveControl);
@@ -128,8 +128,8 @@ namespace UVTileDiscardMapper
 		}
 		#endregion TextBox events
 
-        #region PictureBox events
-        private void PictureBox_MouseClick(object sender, MouseEventArgs e)
+		#region PictureBox events
+		private void PictureBox_MouseClick(object sender, MouseEventArgs e)
 		{
             if (e.Button == MouseButtons.Right)
             {
@@ -402,26 +402,40 @@ namespace UVTileDiscardMapper
 								graphics.DrawImage(cellData.cellImage, imageX, imageY, imageWidth, imageHeight);
 							}
 
+							// Define the text format for center alignment and word wrapping
+							StringFormat centerTextFormat = new StringFormat
+							{
+								Alignment = StringAlignment.Center,
+								LineAlignment = StringAlignment.Center,
+								FormatFlags = StringFormatFlags.LineLimit,
+								Trimming = StringTrimming.EllipsisWord
+							};
+
 							// Measure the size of the center text
 							SizeF centerTextSize = graphics.MeasureString(cellData.centerText, centerTextFont);
 							float centerTextX = cellX + (cellWidth - centerTextSize.Width) / 2f;
 							float centerTextY = cellY + (cellHeight - centerTextSize.Height) / 2f;
 
+							// Define the text area for center text
+							RectangleF centerTextRect = new RectangleF(cellX, cellY, cellWidth, cellHeight);
+
+							// Draw text with white color on top if drawing over an image
+							// Otherwise draw it the other way around for better visibility
 							if (cellData.cellImage != null)
 							{
 								// Draw the center text shadow
-								graphics.DrawString(cellData.centerText, centerTextFont, centerTextShadowBrush, centerTextX + 1f, centerTextY + 1f);
+								graphics.DrawString(cellData.centerText, centerTextFont, centerTextShadowBrush, new RectangleF(centerTextRect.X + 1, centerTextRect.Y + 1, centerTextRect.Width, centerTextRect.Height), centerTextFormat);
 
 								// Draw the center text
-								graphics.DrawString(cellData.centerText, centerTextFont, centerTextBrush, centerTextX, centerTextY);
+								graphics.DrawString(cellData.centerText, centerTextFont, centerTextBrush, centerTextRect, centerTextFormat);
 							}
 							else
 							{
 								// Draw the center text shadow
-								graphics.DrawString(cellData.centerText, centerTextFont, centerTextBrush, centerTextX + 1f, centerTextY + 1f);
+								graphics.DrawString(cellData.centerText, centerTextFont, centerTextBrush, new RectangleF(centerTextRect.X + 1, centerTextRect.Y + 1, centerTextRect.Width, centerTextRect.Height), centerTextFormat);
 
 								// Draw the center text
-								graphics.DrawString(cellData.centerText, centerTextFont, centerTextShadowBrush, centerTextX, centerTextY);
+								graphics.DrawString(cellData.centerText, centerTextFont, centerTextShadowBrush, centerTextRect, centerTextFormat);
 							}
 
 							// Define the text format for bottom-left alignment
