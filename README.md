@@ -13,4 +13,6 @@ This is intended to be used with the [Poiyomi Toon Unity shader](https://github.
 - Copy paste images into the correct tile textboxes, or double click the picture box next to the correct tile textbox to paste an image<br>
 - Right click a picture box to clear its contents<br>
 - When everything is done, save the image with the button at the bottom of the app, and select where to save the image<br>
-- To start over, use the Clear button, to clear everything from the form
+- To start over, use the Clear button, to clear everything from the form<br><br>
+
+App icon by: [Icons8](https://icons8.com/)
