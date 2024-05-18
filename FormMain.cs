@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace UVTileDiscardMapper
@@ -13,8 +14,8 @@ namespace UVTileDiscardMapper
         {
             InitializeComponent();
         }
-
 		private List<Tile> tileControls = new List<Tile>();
+		bool webp_support = true;
 
 		private struct Tile
 		{
@@ -24,12 +25,49 @@ namespace UVTileDiscardMapper
 			public Panel panel;
 			public Label label;
 			public PictureBox pictureBox;
+			public Button button;
 		}
 
-		private void FormMain_Load(object sender, EventArgs e)
+		// Also trying to catch IO exceptions
+        public void WriteResourceToFile(string resourceName, string fileName)
+        {
+            try
+            {
+                using (var resource = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+                {
+                    using (var file = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                    {
+						if (resource != null)
+                        {
+							resource.CopyTo(file);
+                        }
+						else
+                        {
+							if (webp_support)
+								MessageBox.Show("Couldn't extract the WebP library dlls.\r\nWebP images can't be loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+							webp_support = false;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+				if (webp_support)
+					MessageBox.Show("Couldn't extract the WebP library dlls.\r\nWebP images can't be loaded.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+				webp_support = false;
+            }
+        }
+
+        private void FormMain_Load(object sender, EventArgs e)
 		{
 			CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 			CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
+            // Extracting the WebP library dll files from the program for WebP image support
+			WriteResourceToFile("UVTileDiscardMapper.libwebp_x64.dll", "libwebp_x64.dll");
+			WriteResourceToFile("UVTileDiscardMapper.libwebp_x86.dll", "libwebp_x86.dll");
 
 			// Get panels
 			foreach (Control c in tableLayoutPanel.Controls)
@@ -65,7 +103,8 @@ namespace UVTileDiscardMapper
 							x = x,
 							y = y,
 							label = label,
-							pictureBox = tileControls[i].pictureBox
+							pictureBox = tileControls[i].pictureBox,
+							button = tileControls[i].button,
 						};
 					}
 
@@ -82,7 +121,8 @@ namespace UVTileDiscardMapper
 							x = tileControls[i].x,
 							y = tileControls[i].y,
 							label = tileControls[i].label,
-							pictureBox = tileControls[i].pictureBox
+							pictureBox = tileControls[i].pictureBox,
+							button = tileControls[i].button
 						};
 					}
 
@@ -99,9 +139,26 @@ namespace UVTileDiscardMapper
 							x = tileControls[i].x,
 							y = tileControls[i].y,
 							label = tileControls[i].label,
-							pictureBox = (PictureBox)c
+							pictureBox = (PictureBox)c,
+							button = tileControls[i].button
 						};
 					}
+
+					if (c is Button)
+                    {
+                        ((Button)c).Click += BrowseButton_Click;
+
+						tileControls[i] = new Tile
+						{
+							panel = tileControls[i].panel,
+							textBox = tileControls[i].textBox,
+							x = tileControls[i].x,
+							y = tileControls[i].y,
+							label = tileControls[i].label,
+							pictureBox = tileControls[i].pictureBox,
+							button = (Button)c,
+						};
+                    }
 				}
 			}
 
@@ -109,6 +166,52 @@ namespace UVTileDiscardMapper
 			// the TabIndex property's order
 			tileControls.Reverse();
 		}
+
+        private void BrowseButton_Click(object sender, EventArgs e)
+        {
+			if (sender != null)
+            {
+				if (sender is Button)
+                {
+					OpenFileDialog ofd = new OpenFileDialog();
+					ofd.ShowDialog();
+
+					if (ofd.FileName == "")
+						return;
+
+                    for (int i = 0; i < tileControls.Count; i++)
+                    {
+                        if (tileControls[i].button == (Button)sender)
+                        {
+                            if (tileControls[i].pictureBox == null)
+                            {
+                                MessageBox.Show("Couldn't find the correct PictureBox.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                return;
+                            }
+
+                            try
+                            {
+								Image image = ImageProcessor.ReadImage(Path.GetFullPath(ofd.FileName));
+
+								if (image == null)
+									throw new IOException();
+
+                                tileControls[i].pictureBox.Image = image;
+								break;
+                            }
+                            catch (Exception)
+                            {
+								if (webp_support)
+									MessageBox.Show("Couldn't read the specified image.\r\nSupported formats are:\r\n-Bmp\r\n-Gif\r\n-Jpeg\r\n-Png\r\n-Tiff\r\n-WebP", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								else
+									MessageBox.Show("Couldn't read the specified image.\r\nSupported formats are:\r\n-Bmp\r\n-Gif\r\n-Jpeg\r\n-Png\r\n-Tiff\r\n-WebP (disabled)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+								break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         private void FormMain_KeyUp(object sender, KeyEventArgs e)
 		{
@@ -158,7 +261,7 @@ namespace UVTileDiscardMapper
 			if (sfd.FileName == "")
 				return;
 
-			string MeshName = textBoxMeshName.Text.Trim();
+			string MeshName = textBoxMaterialName.Text.Trim();
 			List<(string MeshText, string Coordinate, Image MeshPicture)> texts = new List<(string, string, Image)>();
 
 			for (int i = 0; i < tileControls.Count; i++)
@@ -184,12 +287,12 @@ namespace UVTileDiscardMapper
         #region Clear Button
         private void buttonClear_Click(object sender, EventArgs e)
         {
-			DialogResult dr = MessageBox.Show("Clear", "Do you want to clear the form?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+			DialogResult dr = MessageBox.Show("Do you want to clear the form?", "Clear", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
 			if (dr != DialogResult.Yes)
 				return;
 
-			textBoxMeshName.Text = "";
+			textBoxMaterialName.Text = "";
 
 			for (int i = 0; i < tileControls.Count; i++)
             {
@@ -217,22 +320,19 @@ namespace UVTileDiscardMapper
 		{
 			bool colorChanged = false;
 
-			for (int i = 0; i < tileControls.Count; i++)
-			{
-				if (tileControls[i].textBox != null)
-				{
-					if (tileControls[i].textBox == (TextBox)sender)
-					{
-						if (tileControls[i].label != null)
-						{
-							tileControls[i].label.ForeColor = color;
-							colorChanged = true;
-							break;
-						}
-					}
-				}
+            for (int i = 0; i < tileControls.Count; i++)
+            {
+                if (tileControls[i].textBox == (TextBox)sender)
+                {
+                    if (tileControls[i].label != null)
+                    {
+                        tileControls[i].label.ForeColor = color;
+                        colorChanged = true;
+                        break;
+                    }
+                }
 
-				if (colorChanged)
+                if (colorChanged)
 					break;
 			}
 		}
@@ -267,48 +367,47 @@ namespace UVTileDiscardMapper
 
 			for (int i = 0; i < tileControls.Count; i++)
 			{
-				// TextBox is focused
-				if (activeControl is TextBox)
-				{
-					if (tileControls[i].textBox != null)
-					{
-						if ((TextBox)activeControl == tileControls[i].textBox)
-						{
-							try
-							{
-								Image clipboardImage = Clipboard.GetImage();
+                // TextBox is focused
+                if (activeControl is TextBox)
+                {
+                    if ((TextBox)activeControl == tileControls[i].textBox)
+                    {
+                        try
+                        {
+                            Image clipboardImage = Clipboard.GetImage();
 
-								if (tileControls[i].pictureBox != null)
-									tileControls[i].pictureBox.Image = clipboardImage;
-							}
-							catch (Exception)
-							{
-								MessageBox.Show("Error", "Couldn't paste image", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-							}
-						}
-					}
-				}
+                            if (tileControls[i].pictureBox != null)
+                                tileControls[i].pictureBox.Image = clipboardImage;
 
-				// PictureBox is focused
-				if (activeControl is PictureBox)
-				{
-					if (tileControls[i].pictureBox != null)
-					{
-						if ((PictureBox)activeControl == tileControls[i].pictureBox)
-						{
-							try
-							{
-								Image clipboardImage = Clipboard.GetImage();
-								tileControls[i].pictureBox.Image = clipboardImage;
-							}
-							catch (Exception)
-							{
-								MessageBox.Show("Error", "Couldn't paste image", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-							}
-						}
-					}
-				}
-			}
+							break;
+                        }
+                        catch (Exception)
+                        {
+                            MessageBox.Show("Couldn't paste image", "Error", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+							break;
+                        }
+                    }
+                }
+
+                // PictureBox is focused
+                if (activeControl is PictureBox)
+                {
+                    if ((PictureBox)activeControl == tileControls[i].pictureBox)
+                    {
+                        try
+                        {
+                            Image clipboardImage = Clipboard.GetImage();
+                            tileControls[i].pictureBox.Image = clipboardImage;
+							break;
+                        }
+                        catch (Exception)
+                        {
+                            MessageBox.Show("Couldn't paste image", "Error", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+							break;
+                        }
+                    }
+                }
+            }
 		}
 
 		// Create and save the image
@@ -450,11 +549,24 @@ namespace UVTileDiscardMapper
 							float bottomLeftTextX = cellX + 5; // Padding of 5 pixels from left
 							float bottomLeftTextY = cellY + cellHeight - bottomLeftTextSize.Height - 5; // Padding of 5 pixels from bottom
 
-							// Draw the bottom-left text shadow
-							graphics.DrawString(cellData.bottomLeftText, bottomLeftTextFont, bottomLeftShadowBrush, bottomLeftTextX + 1, bottomLeftTextY + 1);
+							// Draw text with white color on top if drawing over an image
+							// Otherwise draw it the other way around for better visibility
+							if (cellData.cellImage != null)
+							{
+								// Draw the bottom-left text shadow
+								graphics.DrawString(cellData.bottomLeftText, bottomLeftTextFont, bottomLeftShadowBrush, bottomLeftTextX + 1, bottomLeftTextY + 1);
 
-							// Draw the bottom-left text
-							graphics.DrawString(cellData.bottomLeftText, bottomLeftTextFont, bottomLeftTextBrush, bottomLeftTextX, bottomLeftTextY);
+								// Draw the bottom-left text
+								graphics.DrawString(cellData.bottomLeftText, bottomLeftTextFont, bottomLeftTextBrush, bottomLeftTextX, bottomLeftTextY);
+							}
+							else
+                            {
+								// Draw the bottom-left text shadow
+								graphics.DrawString(cellData.bottomLeftText, bottomLeftTextFont, bottomLeftTextBrush, bottomLeftTextX + 1, bottomLeftTextY + 1);
+
+								// Draw the bottom-left text
+								graphics.DrawString(cellData.bottomLeftText, bottomLeftTextFont, bottomLeftShadowBrush, bottomLeftTextX, bottomLeftTextY);
+							}
 
 							// Draw cell borders
 							graphics.DrawRectangle(Pens.Black, cellX, cellY, cellWidth, cellHeight);
@@ -469,7 +581,7 @@ namespace UVTileDiscardMapper
 				}
 				catch (Exception)
 				{
-					MessageBox.Show("Error", "Couldn't save the image", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+					MessageBox.Show("Couldn't save the image", "Error", MessageBoxButtons.OK, MessageBoxIcon.Hand);
 				}
 			}
 		}
